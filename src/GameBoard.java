@@ -156,6 +156,7 @@ public class GameBoard extends Application {
                 "-fx-background-color: red; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 20px;");
         root.setLeft(restartButton);
         restartButton.setPadding(new Insets(10));
+
         // Center - Create a game board
         GridPane gp = new GridPane();
         gp.setAlignment(Pos.CENTER);
