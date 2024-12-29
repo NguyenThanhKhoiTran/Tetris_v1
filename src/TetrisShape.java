@@ -1,3 +1,5 @@
+import javafx.scene.paint.Color;
+
 /****************************************************
  * This enumeratation defines the shape of the block,
  * including support for rotation
@@ -11,52 +13,52 @@ public enum TetrisShape implements Shape {
                         { 0, 1, 0 },
                         { 1, 1, 1 },
                         { 0, 0, 0 }
-        }),
+        }, Color.CYAN),
 
         Z1(new int[][] {
                         { 0, 1, 1, 1 },
                         { 1, 1, 0, 0 },
                         { 0, 0, 0, 0 },
                         { 0, 0, 0, 0 }
-        }),
+        }, Color.YELLOW),
 
         Z2(new int[][] {
                         { 1, 1, 0 },
                         { 0, 1, 1 },
                         { 0, 0, 0 }
-        }),
+        }, Color.PURPLE),
 
         Z3(new int[][] {
                         { 1, 1, 1, 0 },
                         { 0, 0, 1, 1 },
                         { 0, 0, 0, 0 },
                         { 0, 0, 0, 0 }
-        }),
+        }, Color.GREEN),
 
         Z4(new int[][] {
                         { 0, 1, 1 },
                         { 1, 1, 0 },
                         { 0, 0, 0 }
-        }),
+        }, Color.RED),
 
         L1(new int[][] {
                         { 1, 0, 0 },
                         { 1, 1, 1 },
                         { 0, 0, 0 }
-        }),
+        }, Color.BLUE),
 
         L2(new int[][] {
                         { 0, 0, 1 },
                         { 1, 1, 1 },
                         { 0, 0, 0 }
-        }),
+        }, Color.ORANGE),
 
         I1(new int[][] {
                         { 1, 1, 1, 1 },
                         { 0, 0, 0, 0 },
                         { 0, 0, 0, 0 },
                         { 0, 0, 0, 0 }
-        }),
+        }, Color.PINK),
 
         I2(new int[][] {
                         { 1, 0, 0, 0, 0 },
@@ -64,24 +66,24 @@ public enum TetrisShape implements Shape {
                         { 1, 0, 0, 0, 0 },
                         { 1, 0, 0, 0, 0 },
                         { 1, 0, 0, 0, 0 },
-        }),
+        }, Color.LIGHTBLUE),
 
         O(new int[][] {
                         { 1, 1 },
                         { 1, 1 }
-        }),
+        }, Color.LIGHTGREEN),
 
         U(new int[][] {
                         { 1, 0, 1 },
                         { 1, 1, 1 },
                         { 0, 0, 0 }
-        }),
+        }, Color.LIGHTYELLOW),
 
         PLUS(new int[][] {
                         { 0, 1, 0 },
                         { 1, 1, 1 },
                         { 0, 1, 0 }
-        }),
+        }, Color.LIGHTCORAL),
 
         /*******
          * #..\*
@@ -92,7 +94,7 @@ public enum TetrisShape implements Shape {
                         { 1, 0, 0 },
                         { 1, 1, 0 },
                         { 1, 1, 0 }
-        }),
+        }, Color.LIGHTSALMON),
 
         /*******
          * ..#\*
@@ -103,7 +105,7 @@ public enum TetrisShape implements Shape {
                         { 0, 0, 1 },
                         { 1, 1, 1 },
                         { 0, 1, 0 }
-        }),
+        }, Color.LIGHTSKYBLUE),
 
         /*******
          * ## \*
@@ -114,16 +116,22 @@ public enum TetrisShape implements Shape {
                         { 1, 1, 0 },
                         { 0, 1, 0 },
                         { 0, 1, 1 }
-        }),
+        }, Color.LIGHTSTEELBLUE),
 
         SINGLE(new int[][] {
                         { 1 }
-        });
+        }, Color.BLACK);
 
         private int[][] coordinates;
+        private Color c;
 
-        TetrisShape(int[][] coordinates) {
+        TetrisShape(int[][] coordinates, Color c) {
                 this.coordinates = coordinates;
+                this.c = c;
+        }
+
+        public Color getColor() {
+                return c;
         }
 
         public int[][] getCoordinates() {

@@ -1,3 +1,5 @@
+import javafx.scene.paint.Color;
+
 /***************************************************
  * This class is used to create a block object that
  * will be used in the game.
@@ -11,21 +13,20 @@ public class Block {
     public final static int CELL_SIZE = 32;
 
     // Field to store block properties
-    private TetrisShape shape;
-    private int x;
-    private int y;
-    private int color;
+    private int[][] shape;
+    private int x, y;
+    private Color c;
 
     // Constructor
-    public Block(TetrisShape shape, int x, int y, int color) {
+    public Block(int[][] shape, Color c) {
         this.shape = shape;
-        this.x = x;
-        this.y = y;
-        this.color = color;
+        this.c = c;
+        this.x = 0;
+        this.y = 0;
     }
 
     // Accessor methods
-    public TetrisShape getShape() {
+    public int[][] getCurrentShape() {
         return shape;
     }
 
@@ -37,12 +38,8 @@ public class Block {
         return y;
     }
 
-    public int getColor() {
-        return color;
-    }
-
-    public int[][] getCurrentShape() {
-        return shape.getCoordinates();
+    public Color getColor() {
+        return c;
     }
 
     // Mutator methods
@@ -54,23 +51,9 @@ public class Block {
         this.y = y;
     }
 
-    public void setShape(TetrisShape shape) {
-        this.shape = shape;
-    }
-
     // Method to move the block
     public void move(int dx, int dy) {
         this.x += dx;
         this.y += dy;
-    }
-
-    // Method to rotate the block (clockwise)
-    public void rotate() {
-        shape.rotateClockwise();
-    }
-
-    // Method to rotate the block (counter-clockwise)
-    public void rotateCounterClockwise() {
-        shape.rotateCounterClockwise();
     }
 }

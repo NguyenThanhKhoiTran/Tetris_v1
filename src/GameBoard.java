@@ -16,12 +16,17 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -49,7 +54,7 @@ public class GameBoard extends Application {
 
         Label title = new Label("TETRIS");
         title.setAlignment(Pos.CENTER);
-        title.setStyle("-fx-font-size: 50; -fx-font-weight: bold; -fx-text-fill: #ff0000;");
+        title.setStyle("-fx-font-size: 50; -fx-font-weight: bold; -fx-text-fill:rgb(231, 223, 223);");
 
         // Create a timeline for blinking effect
         Timeline tl = new Timeline(
@@ -59,7 +64,7 @@ public class GameBoard extends Application {
         tl.play();
 
         // Use VBox with background image
-        Image background = new Image("resources/background.jpg");
+        Image background = new Image("resources/background2.jpg");
         BackgroundSize bgSize = new BackgroundSize(900, 600, true, true, true, true);
         BackgroundImage bkgd = new BackgroundImage(background, BackgroundRepeat.NO_REPEAT,
                 BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, bgSize);
@@ -86,15 +91,17 @@ public class GameBoard extends Application {
                     if (name.isEmpty()) {
                         throw new NoNameInputException(
                                 "Wait !!!! Do you have any name? If does, please type it into this beautiful field, PLEASE!");
+                    } else {
+                        primaryStage.setScene(playingGame(primaryStage));
                     }
-                    // else {
-                    // primaryStage.setScene(playingGame(primaryStage));
-                    // }
                 } catch (NoNameInputException nnie) {
                     showNameAlert(" >>> ERROR <<<", nnie.getMessage());
                 }
             }
         });
+
+        // Player can press Enter to start the game
+        playerName.setOnAction(event -> startButton.fire());
 
         // Set preferred size
         startButton.setPrefSize(200, 40);
@@ -117,7 +124,84 @@ public class GameBoard extends Application {
         primaryStage.show();
     }
 
-    // Check if a block can move to a new position
+    /****************************************************************
+     * This method is used for creating the game board
+     ****************************************************************/
+    public Scene playingGame(Stage primaryStage) {
+        BorderPane root = new BorderPane();
+        Image background = new Image("resources/playingGame_bkgd.png");
+        BackgroundSize bgSize = new BackgroundSize(900, 600, true, true, true, true);
+        BackgroundImage bkgd = new BackgroundImage(background, BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, bgSize);
+        Background bg = new Background(bkgd);
+        root.setBackground(bg);
+
+        // Top - Label for displaying player name
+        Label playerName = new Label("Player: " + name);
+        playerName.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #000080;");
+        BorderPane.setAlignment(playerName, Pos.CENTER);
+        root.setTop(playerName);
+
+        // Left - Function button
+        Button restartButton = new Button("Restart");
+        restartButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                primaryStage.setScene(new Scene(new StackPane(), 900, 600));
+                start(primaryStage);
+            }
+        });
+
+        restartButton.setStyle(
+                "-fx-background-color: red; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 20px;");
+        root.setLeft(restartButton);
+        restartButton.setPadding(new Insets(10));
+        // Center - Create a game board
+        GridPane gp = new GridPane();
+        gp.setAlignment(Pos.CENTER);
+        gp.setPadding(new Insets(10));
+        gp.setGridLinesVisible(true);
+
+        for (int row = 0; row < ROW_STACK; row++) {
+            for (int col = 0; col < COL_STACK; col++) {
+                StackPane cell = new StackPane();
+                cell.setPrefSize(30, 30);
+
+                // Set background color for the board
+                BackgroundFill backgroundFill = new BackgroundFill(Color.DARKGRAY, CornerRadii.EMPTY, Insets.EMPTY);
+                Background bkgd_board = new Background(backgroundFill);
+                cell.setBackground(bkgd_board);
+
+                // Set border color for the board
+                cell.setStyle("-fx-border-color: lightgray; -fx-border-width: 1.5;");
+                gp.add(cell, col, row);
+            }
+        }
+        root.setCenter(gp);
+
+        // Spawn initial block
+        Block currentBlock = spawnBlock();
+
+        // Display the block on the grid with color
+        for (int row = 0; row < currentBlock.getCurrentShape().length; row++) {
+            for (int col = 0; col < currentBlock.getCurrentShape()[0].length; col++) {
+                if (currentBlock.getCurrentShape()[row][col] != 0) {
+                    StackPane cell = new StackPane();
+                    cell.setPrefSize(30, 30);
+                    BackgroundFill backgroundFill = new BackgroundFill(currentBlock.getColor(), CornerRadii.EMPTY,
+                            Insets.EMPTY);
+                    cell.setBackground(new Background(backgroundFill));
+                    gp.add(cell, currentBlock.getX() + col, currentBlock.getY() + row);
+                }
+            }
+        }
+
+        return new Scene(root, 900, 600);
+    }
+
+    /****************************************************************
+     * Check if a block can move to a new position
+     ****************************************************************/
     public boolean move(Block b, int dx, int dy) {
         int[][] shape = b.getCurrentShape();
         int newX = b.getX() + dx;
@@ -142,7 +226,9 @@ public class GameBoard extends Application {
         return true;
     }
 
-    // Place a block on the board
+    /*************************************************
+     * Place a block on the board
+     *************************************************/
     public void place(Block b) {
         int[][] shape = b.getCurrentShape();
         int x = b.getX();
@@ -157,8 +243,10 @@ public class GameBoard extends Application {
         }
     }
 
-    // A method to detect the full line and clear it
-    // as well as shift the rows down
+    /*************************************************
+     * A method to detect the full line and clear it
+     * as well as shift the rows down
+     *************************************************/
     public void clearLines() {
         List<Integer> fullLines = new ArrayList<>();
 
@@ -186,7 +274,9 @@ public class GameBoard extends Application {
         }
     }
 
-    // Check if the game is over
+    /***********************************
+     * Check if the game is over
+     ***********************************/
     public boolean gameOver(Block b) {
         int[][] shape = b.getCurrentShape();
         int x = b.getX();
@@ -231,5 +321,32 @@ public class GameBoard extends Application {
         Scene scene = new Scene(layout, 550, 100);
         alertStage.setScene(scene);
         alertStage.showAndWait();
+    }
+
+    /**********************************
+     * A function to spawn a new block
+     **********************************/
+    public Block spawnBlock() {
+        TetrisShape[] shapes = TetrisShape.values();
+        TetrisShape random = shapes[(int) (Math.random() * shapes.length)];
+
+        // Randomly select a shape except the single one (use for other purposes)
+        while (random == TetrisShape.SINGLE) {
+            random = shapes[(int) (Math.random() * shapes.length)];
+        }
+
+        // Create a new block object
+        Block newBlock = new Block(random.getCoordinates(), random.getColor());
+
+        // Set the block's initial position at the top center
+        int startX = (COL_STACK - newBlock.getCurrentShape()[0].length) / 2;
+        newBlock.setX(startX);
+        newBlock.setY(0);
+
+        // Check if the game is over
+        if (!move(newBlock, 0, 0))
+            showNameAlert("GAME OVER", "THE BOARD IS FULL!");
+
+        return newBlock;
     }
 }
