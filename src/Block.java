@@ -9,9 +9,6 @@ import javafx.scene.paint.Color;
  * @version proj_v01
  **************************************************/
 public class Block {
-    // Set the width and height of the block
-    public final static int CELL_SIZE = 32;
-
     // Field to store block properties
     private int[][] shape;
     private int x, y;
@@ -51,9 +48,7 @@ public class Block {
         this.y = y;
     }
 
-    // Method to move the block
-    public void move(int dx, int dy) {
-        this.x += dx;
-        this.y += dy;
+    public void setShape(int[][] shape) {
+        this.shape = shape;
     }
 }

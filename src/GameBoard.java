@@ -1,6 +1,3 @@
-import java.util.ArrayList;
-import java.util.List;
-
 import javafx.util.Duration;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -27,6 +24,8 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
@@ -43,6 +42,10 @@ public class GameBoard extends Application {
     private final int ROW_STACK = 24;
     private final int COL_STACK = 10;
     private final Block[][] board = new Block[ROW_STACK][COL_STACK];
+    private Block currentBlock;
+    private Timeline gravity;
+
+    public Action a = new Action();
     public static String name = "";
 
     /***********************************************************
@@ -129,6 +132,7 @@ public class GameBoard extends Application {
      ****************************************************************/
     public Scene playingGame(Stage primaryStage) {
         BorderPane root = new BorderPane();
+
         Image background = new Image("resources/playingGame_bkgd.png");
         BackgroundSize bgSize = new BackgroundSize(900, 600, true, true, true, true);
         BackgroundImage bkgd = new BackgroundImage(background, BackgroundRepeat.NO_REPEAT,
@@ -181,129 +185,41 @@ public class GameBoard extends Application {
         root.setCenter(gp);
 
         // Spawn initial block
-        Block currentBlock = spawnBlock();
+        currentBlock = a.spawnBlock(board);
+        update(gp);
 
-        // Display the block on the grid with color
-        for (int row = 0; row < currentBlock.getCurrentShape().length; row++) {
-            for (int col = 0; col < currentBlock.getCurrentShape()[0].length; col++) {
-                if (currentBlock.getCurrentShape()[row][col] != 0) {
-                    StackPane cell = new StackPane();
-                    cell.setPrefSize(30, 30);
-                    BackgroundFill backgroundFill = new BackgroundFill(currentBlock.getColor(), CornerRadii.EMPTY,
-                            Insets.EMPTY);
-                    cell.setBackground(new Background(backgroundFill));
-                    gp.add(cell, currentBlock.getX() + col, currentBlock.getY() + row);
+        // Set up gravity
+        gravity = new Timeline(new KeyFrame(Duration.seconds(0.5), e -> {
+            if (a.move(currentBlock, board, 0, 1)) {
+                currentBlock.setY(currentBlock.getY() + 1);
+                update(gp);
+            } else {
+                a.place(currentBlock, board);
+                a.clearLines(board);
+
+                // Spawn a new block
+                currentBlock = a.spawnBlock(board);
+
+                // Check if the game is over
+                if (a.gameOver(board, currentBlock)) {
+                    gravity.stop();
+                    showNameAlert("GAME OVER", "You lose, " + name + "!");
                 }
             }
-        }
+        }));
+        gravity.setCycleCount(Animation.INDEFINITE);
+        gravity.play();
 
-        return new Scene(root, 900, 600);
+        Scene gameScene = new Scene(root, 900, 600);
+        gameScene.setOnKeyPressed(event -> handleKeyPress(event, currentBlock, a, gp));
+        return gameScene;
     }
 
-    /****************************************************************
-     * Check if a block can move to a new position
-     ****************************************************************/
-    public boolean move(Block b, int dx, int dy) {
-        int[][] shape = b.getCurrentShape();
-        int newX = b.getX() + dx;
-        int newY = b.getY() + dy;
-
-        for (int row = 0; row < shape.length; row++) {
-            for (int col = 0; col < shape[0].length; col++) {
-                if (shape[row][col] != 0) {
-                    int x = newX + col;
-                    int y = newY + row;
-
-                    if (x < 0 || x >= COL_STACK || y >= ROW_STACK) {
-                        return false;
-                    }
-
-                    if (y >= 0 && board[y][x] != null) {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-
-    /*************************************************
-     * Place a block on the board
-     *************************************************/
-    public void place(Block b) {
-        int[][] shape = b.getCurrentShape();
-        int x = b.getX();
-        int y = b.getY();
-
-        for (int row = 0; row < shape.length; row++) {
-            for (int col = 0; col < shape[0].length; col++) {
-                if (shape[row][col] != 0) {
-                    board[y + row][x + col] = b;
-                }
-            }
-        }
-    }
-
-    /*************************************************
-     * A method to detect the full line and clear it
-     * as well as shift the rows down
-     *************************************************/
-    public void clearLines() {
-        List<Integer> fullLines = new ArrayList<>();
-
-        // Identify full lines
-        for (int row = 0; row < ROW_STACK; row++) {
-            boolean full = true;
-            for (int col = 0; col < COL_STACK; col++) {
-                if (board[row][col] == null) {
-                    full = false;
-                    break;
-                }
-            }
-            if (full) {
-                fullLines.add(row);
-            }
-        }
-
-        // Remove full lines and shift rows down
-        for (int row : fullLines) {
-            for (int r = row; r > 0; r--) {
-                for (int col = 0; col < COL_STACK; col++) {
-                    board[r][col] = board[r - 1][col];
-                }
-            }
-        }
-    }
-
-    /***********************************
-     * Check if the game is over
-     ***********************************/
-    public boolean gameOver(Block b) {
-        int[][] shape = b.getCurrentShape();
-        int x = b.getX();
-        int y = b.getY();
-
-        for (int row = 0; row < shape.length; row++) {
-            for (int col = 0; col < shape[0].length; col++) {
-                if (shape[row][col] != 0) {
-                    int boardX = x + col;
-                    int boardY = y + row;
-
-                    // Check if the block is above the grid or overlaps existing blocks
-                    if (boardY < 0 || (boardY >= 0 && board[boardY][boardX] != null)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /************************************************************************************************************
+    /*******************************************************************************
      * Make a method for exception if player does not input anything, display the
      * message to force user inputting
-     ************************************************************************************************************/
-    private void showNameAlert(String title, String message) {
+     ******************************************************************************/
+    public static void showNameAlert(String title, String message) {
         Stage alertStage = new Stage();
         alertStage.initModality(Modality.APPLICATION_MODAL);
         alertStage.setTitle(title);
@@ -324,30 +240,95 @@ public class GameBoard extends Application {
         alertStage.showAndWait();
     }
 
-    /**********************************
-     * A function to spawn a new block
-     **********************************/
-    public Block spawnBlock() {
-        TetrisShape[] shapes = TetrisShape.values();
-        TetrisShape random = shapes[(int) (Math.random() * shapes.length)];
+    /**************************************************************
+     * Update the GridPane based on the current state of the board
+     **************************************************************/
+    private void update(GridPane gp) {
+        gp.getChildren().clear();
+        for (int row = 0; row < ROW_STACK; row++) {
+            for (int col = 0; col < COL_STACK; col++) {
+                StackPane cell = new StackPane();
+                cell.setPrefSize(30, 30);
 
-        // Randomly select a shape except the single one (use for other purposes)
-        while (random == TetrisShape.SINGLE) {
-            random = shapes[(int) (Math.random() * shapes.length)];
+                // Fill the cell with color if there is a block,
+                // otherwise, fill with intial color
+                if (board[row][col] != null) {
+                    BackgroundFill bf = new BackgroundFill(board[row][col].getColor(), CornerRadii.EMPTY, Insets.EMPTY);
+                    cell.setBackground(new Background(bf));
+                } else {
+                    BackgroundFill bf = new BackgroundFill(Color.DARKGRAY, CornerRadii.EMPTY, Insets.EMPTY);
+                    cell.setBackground(new Background(bf));
+                }
+                cell.setStyle("-fx-border-color: lightgray; -fx-border-width: 1.5;");
+                gp.add(cell, col, row);
+            }
         }
 
-        // Create a new block object
-        Block newBlock = new Block(random.getCoordinates(), random.getColor());
+        // Display the current block on the grid
+        int[][] shape = currentBlock.getCurrentShape();
+        for (int row = 0; row < shape.length; row++) {
+            for (int col = 0; col < shape[0].length; col++) {
+                if (shape[row][col] != 0) {
+                    StackPane cell = new StackPane();
+                    cell.setPrefSize(30, 30);
+                    BackgroundFill bf = new BackgroundFill(currentBlock.getColor(), CornerRadii.EMPTY, Insets.EMPTY);
+                    cell.setBackground(new Background(bf));
+                    gp.add(cell, currentBlock.getX() + col, currentBlock.getY() + row);
+                }
+            }
+        }
+    }
 
-        // Set the block's initial position at the top center
-        int startX = (COL_STACK - newBlock.getCurrentShape()[0].length) / 2;
-        newBlock.setX(startX);
-        newBlock.setY(0);
-
-        // Check if the game is over
-        if (!move(newBlock, 0, 0))
-            showNameAlert("GAME OVER", "THE BOARD IS FULL!");
-
-        return newBlock;
+    /**************************************************************
+     * Handle key press events
+     **************************************************************/
+    private void handleKeyPress(KeyEvent event, Block currentBlock, Action a, GridPane gp) {
+        KeyCode code = event.getCode();
+        switch (code) {
+            case KeyCode.LEFT:
+                System.out.println("Left key pressed");
+                if (a.move(currentBlock, board, -1, 0)) {
+                    currentBlock.setX(currentBlock.getX() - 1);
+                    update(gp);
+                }
+                break;
+            case KeyCode.RIGHT:
+                System.out.println("Right key pressed");
+                if (a.move(currentBlock, board, 1, 0)) {
+                    currentBlock.setX(currentBlock.getX() + 1);
+                    update(gp);
+                }
+                break;
+            case KeyCode.DOWN:
+                System.out.println("Down key pressed");
+                if (a.move(currentBlock, board, 0, 1)) {
+                    currentBlock.setY(currentBlock.getY() + 1);
+                    update(gp);
+                } else {
+                    a.place(currentBlock, board);
+                    a.clearLines(board);
+                    currentBlock = a.spawnBlock(board);
+                    if (a.gameOver(board, currentBlock)) {
+                        gravity.stop();
+                        showNameAlert("GAME OVER", "You lose, " + name + "!");
+                    }
+                }
+                break;
+            case KeyCode.A:
+                System.out.println("A key pressed");
+                int[][] originalShape = currentBlock.getCurrentShape();
+                currentBlock.setShape(TetrisShape.rotateClockwise(originalShape));
+                update(gp);
+                break;
+            case KeyCode.D:
+                System.out.println("D key pressed");
+                int[][] originalShape2 = currentBlock.getCurrentShape();
+                currentBlock.setShape(TetrisShape.rotateCounterClockwise(originalShape2));
+                update(gp);
+                break;
+            default:
+                break;
+        }
+        update(gp);
     }
 }

@@ -8,7 +8,7 @@ import javafx.scene.paint.Color;
  * @date Dec 24th, 2024
  * @version proj_v01
  ****************************************************/
-public enum TetrisShape implements Shape {
+public enum TetrisShape {
         T(new int[][] {
                         { 0, 1, 0 },
                         { 1, 1, 1 },
@@ -138,12 +138,8 @@ public enum TetrisShape implements Shape {
                 return coordinates;
         }
 
-        public void rotateClockwise() {
-                coordinates = rotateClockwise(coordinates);
-        }
-
-        // Helper method to rotate the shape clockwise
-        private static int[][] rotateClockwise(int[][] matrix) {
+        // method to rotate the shape clockwise
+        public static int[][] rotateClockwise(int[][] matrix) {
                 int r = matrix.length;
                 int c = matrix[0].length;
                 int[][] result = new int[c][r];
@@ -155,12 +151,8 @@ public enum TetrisShape implements Shape {
                 return result;
         }
 
-        public void rotateCounterClockwise() {
-                coordinates = rotateCounterClockwise(coordinates);
-        }
-
-        // Helper method to rotate the shape counter-clockwise
-        private static int[][] rotateCounterClockwise(int[][] matrix) {
+        // method to rotate the shape counter-clockwise
+        public static int[][] rotateCounterClockwise(int[][] matrix) {
                 int r = matrix.length;
                 int c = matrix[0].length;
                 int[][] result = new int[c][r];
