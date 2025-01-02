@@ -53,7 +53,7 @@ public class Action {
      * A method to detect the full line and clear it
      * as well as shift the rows down
      *************************************************/
-    public void clearLines(Block[][] board) {
+    public void clearLines(Block[][] board, int score) {
         List<Integer> fullLines = new ArrayList<>();
 
         // Identify full lines
@@ -68,6 +68,19 @@ public class Action {
             if (full) {
                 fullLines.add(row);
             }
+        }
+
+        // Calculate score based on the number of full lines
+        int lineCleared = fullLines.size();
+
+        if (lineCleared == 1) {
+            score += 50;
+        } else if (lineCleared == 2) {
+            score += 100;
+        } else if (lineCleared == 3) {
+            score += 150;
+        } else if (lineCleared >= 4) {
+            score += 150 + 200 * (lineCleared - 3);
         }
 
         // Remove full lines and shift rows down

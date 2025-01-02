@@ -47,6 +47,7 @@ public class GameBoard extends Application {
 
     public Action a = new Action();
     public static String name = "";
+    public static int score = 0;
 
     /***********************************************************
      * This method is used for showing the intro pane
@@ -195,7 +196,7 @@ public class GameBoard extends Application {
                 update(gp);
             } else {
                 a.place(currentBlock, board);
-                a.clearLines(board);
+                a.clearLines(board, score);
 
                 // Spawn a new block
                 currentBlock = a.spawnBlock(board);
@@ -237,7 +238,7 @@ public class GameBoard extends Application {
 
         Scene scene = new Scene(layout, 550, 100);
         alertStage.setScene(scene);
-        alertStage.showAndWait();
+        alertStage.show();
     }
 
     /**************************************************************
@@ -279,34 +280,31 @@ public class GameBoard extends Application {
         }
     }
 
-    /**************************************************************
+    /***************************
      * Handle key press events
-     **************************************************************/
+     ***************************/
     private void handleKeyPress(KeyEvent event, Block currentBlock, Action a, GridPane gp) {
         KeyCode code = event.getCode();
         switch (code) {
-            case KeyCode.LEFT:
-                System.out.println("Left key pressed");
+            case KeyCode.A:
                 if (a.move(currentBlock, board, -1, 0)) {
                     currentBlock.setX(currentBlock.getX() - 1);
                     update(gp);
                 }
                 break;
-            case KeyCode.RIGHT:
-                System.out.println("Right key pressed");
+            case KeyCode.D:
                 if (a.move(currentBlock, board, 1, 0)) {
                     currentBlock.setX(currentBlock.getX() + 1);
                     update(gp);
                 }
                 break;
-            case KeyCode.DOWN:
-                System.out.println("Down key pressed");
+            case KeyCode.S:
                 if (a.move(currentBlock, board, 0, 1)) {
                     currentBlock.setY(currentBlock.getY() + 1);
                     update(gp);
                 } else {
                     a.place(currentBlock, board);
-                    a.clearLines(board);
+                    a.clearLines(board, score);
                     currentBlock = a.spawnBlock(board);
                     if (a.gameOver(board, currentBlock)) {
                         gravity.stop();
@@ -314,14 +312,12 @@ public class GameBoard extends Application {
                     }
                 }
                 break;
-            case KeyCode.A:
-                System.out.println("A key pressed");
+            case KeyCode.Z:
                 int[][] originalShape = currentBlock.getCurrentShape();
                 currentBlock.setShape(TetrisShape.rotateClockwise(originalShape));
                 update(gp);
                 break;
-            case KeyCode.D:
-                System.out.println("D key pressed");
+            case KeyCode.X:
                 int[][] originalShape2 = currentBlock.getCurrentShape();
                 currentBlock.setShape(TetrisShape.rotateCounterClockwise(originalShape2));
                 update(gp);
