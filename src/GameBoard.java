@@ -5,8 +5,10 @@ import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -49,6 +51,7 @@ public class GameBoard extends Application {
 
     public Action a = new Action();
     public String name = "";
+    public int count = 3;
     private int score = 0;
 
     /***********************************************************
@@ -136,6 +139,7 @@ public class GameBoard extends Application {
      ****************************************************************/
     public Scene playingGame(Stage primaryStage) {
         BorderPane root = new BorderPane();
+        Scene gameScene = new Scene(root, 900, 600);
 
         Image background = new Image("resources/playingGame_bkgd.png");
         BackgroundSize bgSize = new BackgroundSize(900, 600, true, true, true, true);
@@ -170,8 +174,53 @@ public class GameBoard extends Application {
         restartButton.setStyle(
                 "-fx-background-color: red; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 20px;");
 
-        // Function 1 - Add a single block with user prefered
-        Button addBlockButton = new Button("Add Block");
+        // Function 1 - Add a single block with user prefered (use 3 times)
+        Button addBlockButton = new Button("Add a Single Block x" + count);
+        addBlockButton.setOnAction(event -> {
+            GridPane gp = (GridPane) root.getCenter();
+            gravity.stop();
+            gp.setOnMouseClicked(e -> {
+                // go through all child Node elements in the GridPane
+                for (Node node : gp.getChildren()) {
+                    // Check if the mouse click is within the bounds of the cell
+                    if (node instanceof StackPane) {
+                        Bounds bounds = node.getBoundsInParent();
+                        if (bounds.contains(e.getX(), e.getY())) {
+                            Integer col = GridPane.getColumnIndex(node);
+                            Integer row = GridPane.getRowIndex(node);
+
+                            // Ensure indices are valid
+                            if (col == null)
+                                col = 0;
+                            if (row == null)
+                                row = 0;
+
+                            // Check if the cell is empty
+                            if (board[row][col] == null) {
+                                int[][] coordinates = TetrisShape.SINGLE.getCoordinates();
+                                Color singleColor = TetrisShape.SINGLE.getColor();
+                                Block singleBlock = new Block(coordinates, singleColor);
+                                board[row][col] = singleBlock;
+
+                                score = a.clearLines(board, score);
+                                scoreLabel.setText("Score: " + score);
+
+                                count--;
+                                addBlockButton.setText("Add a Single Block x" + count);
+                                update(gp);
+                                if (count == 0) {
+                                    gp.setOnMouseClicked(null);
+                                    addBlockButton.setDisable(true);
+                                    addBlockButton.setStyle("-fx-background-color: darkgray; -fx-text-fill: black;");
+                                }
+                                gravity.play();
+                            }
+                            break;
+                        }
+                    }
+                }
+            });
+        });
 
         // Function 2 - Use gravity in random column
         Button gravityButton = new Button("Gravity");
@@ -184,7 +233,7 @@ public class GameBoard extends Application {
                 currentBlock = a.spawnBlock(board);
                 update((GridPane) root.getCenter());
 
-                // Disable the button after changing the block
+                // Disable the button after changed the block
                 changeBlockButton.setDisable(true);
                 changeBlockButton.setStyle("-fx-background-color: darkgray; -fx-text-fill: black;");
             }
@@ -245,7 +294,6 @@ public class GameBoard extends Application {
         gravity.setCycleCount(Animation.INDEFINITE);
         gravity.play();
 
-        Scene gameScene = new Scene(root, 900, 600);
         gameScene.setOnKeyPressed(event -> handleKeyPress(event, currentBlock, a, gp));
         return gameScene;
     }
@@ -343,30 +391,33 @@ public class GameBoard extends Application {
             case KeyCode.A:
                 if (a.move(currentBlock, board, -1, 0)) {
                     currentBlock.setX(currentBlock.getX() - 1);
-                    update(gp);
                 }
                 break;
             case KeyCode.D:
                 if (a.move(currentBlock, board, 1, 0)) {
                     currentBlock.setX(currentBlock.getX() + 1);
-                    update(gp);
                 }
                 break;
             case KeyCode.S:
                 if (a.move(currentBlock, board, 0, 1)) {
                     currentBlock.setY(currentBlock.getY() + 1);
-                    update(gp);
                 }
                 break;
             case KeyCode.Z:
                 int[][] originalShape = currentBlock.getCurrentShape();
-                currentBlock.setShape(TetrisShape.rotateClockwise(originalShape));
-                update(gp);
+                int[][] rotatedShape = TetrisShape.rotateClockwise(originalShape);
+                Block rotatedBlock = new Block(rotatedShape, currentBlock.getColor());
+                if (a.move(rotatedBlock, board, 0, 0)) {
+                    currentBlock.setShape(rotatedShape);
+                }
                 break;
             case KeyCode.X:
                 int[][] originalShape2 = currentBlock.getCurrentShape();
-                currentBlock.setShape(TetrisShape.rotateCounterClockwise(originalShape2));
-                update(gp);
+                int[][] rotatedShape2 = TetrisShape.rotateCounterClockwise(originalShape2);
+                Block rotatedBlock2 = new Block(rotatedShape2, currentBlock.getColor());
+                if (a.move(rotatedBlock2, board, 0, 0)) {
+                    currentBlock.setShape(rotatedShape2);
+                }
                 break;
             default:
                 break;

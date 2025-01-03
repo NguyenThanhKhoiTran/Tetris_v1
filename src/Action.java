@@ -13,22 +13,25 @@ public class Action {
         int newX = b.getX() + dx;
         int newY = b.getY() + dy;
 
+        if (newX < 0 || newX >= COL_STACK || newY < 0 || newY >= ROW_STACK) {
+            return false;
+        }
+
         for (int row = 0; row < shape.length; row++) {
-            for (int col = 0; col < shape[0].length; col++) {
+            for (int col = 0; col < shape[row].length; col++) {
                 if (shape[row][col] != 0) {
                     int x = newX + col;
                     int y = newY + row;
 
-                    if (x < 0 || x >= COL_STACK || y >= ROW_STACK) {
+                    if (x < 0 || x >= COL_STACK || y >= ROW_STACK || y < 0) {
                         return false;
-                    }
-
-                    if (y >= 0 && board[y][x] != null) {
+                    } else if (y >= 0 && board[y][x] != null) {
                         return false;
                     }
                 }
             }
         }
+
         return true;
     }
 
@@ -140,7 +143,7 @@ public class Action {
         return newBlock;
     }
 
-    /**************************************************
-     * A function to add a gravity into random columns
-     **************************************************/
+    /**********************************
+     * A function to rotate a block
+     **********************************/
 }
