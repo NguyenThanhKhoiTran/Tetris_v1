@@ -21,6 +21,7 @@ import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -39,6 +40,7 @@ import javafx.stage.Stage;
  **************************************************************/
 
 public class GameBoard extends Application {
+    private Stage primaryStage;
     private final int ROW_STACK = 24;
     private final int COL_STACK = 10;
     private final Block[][] board = new Block[ROW_STACK][COL_STACK];
@@ -46,14 +48,15 @@ public class GameBoard extends Application {
     private Timeline gravity;
 
     public Action a = new Action();
-    public static String name = "";
-    public static int score = 0;
+    public String name = "";
+    private int score = 0;
 
     /***********************************************************
      * This method is used for showing the intro pane
      ***********************************************************/
     @Override
     public void start(Stage primaryStage) {
+        this.primaryStage = primaryStage;
         StackPane root = new StackPane();
 
         Label title = new Label("TETRIS");
@@ -99,7 +102,7 @@ public class GameBoard extends Application {
                         primaryStage.setScene(playingGame(primaryStage));
                     }
                 } catch (NoNameInputException nnie) {
-                    showNameAlert(" >>> ERROR <<<", nnie.getMessage());
+                    showAlert(" >>> ERROR <<<", nnie.getMessage(), true);
                 }
             }
         });
@@ -147,20 +150,37 @@ public class GameBoard extends Application {
         BorderPane.setAlignment(playerName, Pos.CENTER);
         root.setTop(playerName);
 
-        // Left - Function button
+        // Left - Function button and display score
+        VBox vb = new VBox(20);
+        vb.setPadding(new Insets(10));
+        vb.setAlignment(Pos.CENTER);
+
+        Label scoreLabel = new Label("Score: " + score);
+        scoreLabel.setStyle("-fx-font-size: 20; -fx-font-weight: bold; -fx-text-fill: #000080;");
+
         Button restartButton = new Button("Restart");
         restartButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                primaryStage.setScene(new Scene(new StackPane(), 900, 600));
-                start(primaryStage);
+                resetGame();
+                primaryStage.setScene(playingGame(primaryStage));
             }
         });
 
         restartButton.setStyle(
                 "-fx-background-color: red; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 20px;");
-        root.setLeft(restartButton);
-        restartButton.setPadding(new Insets(10));
+
+        // Function 1 - Add a single block with user prefered
+        Button addBlockButton = new Button("Add Block");
+
+        // Function 2 - Use gravity in random column
+        Button gravityButton = new Button("Gravity");
+
+        // Function 3 - Change the dropping block
+        Button changeBlockButton = new Button("Change Block");
+
+        vb.getChildren().addAll(scoreLabel, restartButton, addBlockButton, gravityButton, changeBlockButton);
+        root.setLeft(vb);
 
         // Center - Create a game board
         GridPane gp = new GridPane();
@@ -204,7 +224,9 @@ public class GameBoard extends Application {
                 // Check if the game is over
                 if (a.gameOver(board, currentBlock)) {
                     gravity.stop();
-                    showNameAlert("GAME OVER", "You lose, " + name + "!");
+                    String msg = "You lose, " + name + "!" + "\nYour score: " + score + " points";
+                    msg += "\nClick the button \"RESTART\" below to play again";
+                    showAlert("GAME OVER", msg, false);
                 }
             }
         }));
@@ -220,7 +242,8 @@ public class GameBoard extends Application {
      * Make a method for exception if player does not input anything, display the
      * message to force user inputting
      ******************************************************************************/
-    public static void showNameAlert(String title, String message) {
+    public void showAlert(String title, String message, boolean alertName) {
+        HBox buttons = new HBox(10);
         Stage alertStage = new Stage();
         alertStage.initModality(Modality.APPLICATION_MODAL);
         alertStage.setTitle(title);
@@ -228,15 +251,34 @@ public class GameBoard extends Application {
 
         Label label = new Label();
         label.setText(message);
-        Button closeButton = new Button("OK, I understand");
-        closeButton.setOnAction(event -> alertStage.close());
+
+        // If the player does not input anything, display the message to force user
+        // Otherwise, this is just a message to show the game is over
+        if (!alertName) {
+            Button closeButton = new Button("QUIT");
+            Button restartButton = new Button("RESTART");
+
+            closeButton.setOnAction(event -> System.exit(0));
+            restartButton.setOnAction(event -> {
+                alertStage.close();
+                resetGame();
+                primaryStage.setScene(playingGame(primaryStage));
+            });
+            buttons.getChildren().addAll(closeButton, restartButton);
+            buttons.setAlignment(Pos.CENTER);
+        } else {
+            Button closeButton = new Button("OK, I understand!");
+            closeButton.setOnAction(event -> alertStage.close());
+            buttons.getChildren().add(closeButton);
+            buttons.setAlignment(Pos.CENTER);
+        }
 
         VBox layout = new VBox(10);
-        layout.getChildren().addAll(label, closeButton);
+        layout.getChildren().addAll(label, buttons);
         layout.setPadding(new Insets(10));
         layout.setAlignment(Pos.CENTER);
 
-        Scene scene = new Scene(layout, 550, 100);
+        Scene scene = new Scene(layout, 550, 200);
         alertStage.setScene(scene);
         alertStage.show();
     }
@@ -302,14 +344,6 @@ public class GameBoard extends Application {
                 if (a.move(currentBlock, board, 0, 1)) {
                     currentBlock.setY(currentBlock.getY() + 1);
                     update(gp);
-                } else {
-                    a.place(currentBlock, board);
-                    a.clearLines(board, score);
-                    currentBlock = a.spawnBlock(board);
-                    if (a.gameOver(board, currentBlock)) {
-                        gravity.stop();
-                        showNameAlert("GAME OVER", "You lose, " + name + "!");
-                    }
                 }
                 break;
             case KeyCode.Z:
@@ -326,5 +360,27 @@ public class GameBoard extends Application {
                 break;
         }
         update(gp);
+    }
+
+    /****************************************************
+     * Reset the game board and score
+     ****************************************************/
+    private void resetGame() {
+        // Clear the board
+        for (int row = 0; row < ROW_STACK; row++) {
+            for (int col = 0; col < COL_STACK; col++) {
+                board[row][col] = null;
+            }
+        }
+
+        // Reset the score
+        score = 0;
+
+        // Reset the gravity
+        if (gravity != null)
+            gravity.stop();
+
+        // Reset the current block
+        currentBlock = null;
     }
 }

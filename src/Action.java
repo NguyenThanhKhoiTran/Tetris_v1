@@ -136,11 +136,6 @@ public class Action {
         int startX = (COL_STACK - newBlock.getCurrentShape()[0].length) / 2;
         newBlock.setX(startX);
         newBlock.setY(0);
-
-        // Check if the game is over
-        if (!move(newBlock, board, 0, 0))
-            GameBoard.showNameAlert("GAME OVER", "THE BOARD IS FULL!");
-
         return newBlock;
     }
 }
