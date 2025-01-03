@@ -178,6 +178,17 @@ public class GameBoard extends Application {
 
         // Function 3 - Change the dropping block
         Button changeBlockButton = new Button("Change Block");
+        changeBlockButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                currentBlock = a.spawnBlock(board);
+                update((GridPane) root.getCenter());
+
+                // Disable the button after changing the block
+                changeBlockButton.setDisable(true);
+                changeBlockButton.setStyle("-fx-background-color: darkgray; -fx-text-fill: black;");
+            }
+        });
 
         vb.getChildren().addAll(scoreLabel, restartButton, addBlockButton, gravityButton, changeBlockButton);
         root.setLeft(vb);
@@ -216,7 +227,8 @@ public class GameBoard extends Application {
                 update(gp);
             } else {
                 a.place(currentBlock, board);
-                a.clearLines(board, score);
+                score = a.clearLines(board, score);
+                scoreLabel.setText("Score: " + score);
 
                 // Spawn a new block
                 currentBlock = a.spawnBlock(board);

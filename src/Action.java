@@ -53,7 +53,7 @@ public class Action {
      * A method to detect the full line and clear it
      * as well as shift the rows down
      *************************************************/
-    public void clearLines(Block[][] board, int score) {
+    public int clearLines(Block[][] board, int score) {
         List<Integer> fullLines = new ArrayList<>();
 
         // Identify full lines
@@ -91,6 +91,7 @@ public class Action {
                 }
             }
         }
+        return score;
     }
 
     /***********************************
@@ -138,4 +139,8 @@ public class Action {
         newBlock.setY(0);
         return newBlock;
     }
+
+    /**************************************************
+     * A function to add a gravity into random columns
+     **************************************************/
 }
