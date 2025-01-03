@@ -222,10 +222,7 @@ public class GameBoard extends Application {
             });
         });
 
-        // Function 2 - Use gravity in random column
-        Button gravityButton = new Button("Gravity");
-
-        // Function 3 - Change the dropping block
+        // Function 2 - Change the dropping block
         Button changeBlockButton = new Button("Change Block");
         changeBlockButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -239,7 +236,7 @@ public class GameBoard extends Application {
             }
         });
 
-        vb.getChildren().addAll(scoreLabel, restartButton, addBlockButton, gravityButton, changeBlockButton);
+        vb.getChildren().addAll(scoreLabel, restartButton, addBlockButton, changeBlockButton);
         root.setLeft(vb);
 
         // Center - Create a game board
@@ -407,7 +404,7 @@ public class GameBoard extends Application {
                 int[][] originalShape = currentBlock.getCurrentShape();
                 int[][] rotatedShape = TetrisShape.rotateClockwise(originalShape);
                 Block rotatedBlock = new Block(rotatedShape, currentBlock.getColor());
-                if (a.move(rotatedBlock, board, 0, 0)) {
+                if (a.isRotationValid(rotatedBlock, board) == true) {
                     currentBlock.setShape(rotatedShape);
                 }
                 break;
@@ -415,7 +412,7 @@ public class GameBoard extends Application {
                 int[][] originalShape2 = currentBlock.getCurrentShape();
                 int[][] rotatedShape2 = TetrisShape.rotateCounterClockwise(originalShape2);
                 Block rotatedBlock2 = new Block(rotatedShape2, currentBlock.getColor());
-                if (a.move(rotatedBlock2, board, 0, 0)) {
+                if (a.isRotationValid(rotatedBlock2, board) == true) {
                     currentBlock.setShape(rotatedShape2);
                 }
                 break;

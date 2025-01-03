@@ -143,7 +143,31 @@ public class Action {
         return newBlock;
     }
 
-    /**********************************
-     * A function to rotate a block
-     **********************************/
+    /********************************************
+     * A function to validate the block rotation
+     *******************************************/
+    public boolean isRotationValid(Block rotatedBlock, Block[][] board) {
+        int[][] shape = rotatedBlock.getCurrentShape();
+        int newX = rotatedBlock.getX();
+        int newY = rotatedBlock.getY();
+
+        // Check if the rotated block is out of bounds
+        if (newX < 0 || newX + shape[0].length > COL_STACK || newY < 0 || newY + shape.length > ROW_STACK) {
+            return false;
+        }
+
+        // Check for collisions with existing blocks
+        for (int row = 0; row < shape.length; row++) {
+            for (int col = 0; col < shape[row].length; col++) {
+                if (shape[row][col] != 0) {
+                    int x = newX + col;
+                    int y = newY + row;
+                    if (x < 0 || x >= COL_STACK || y < 0 || y >= ROW_STACK || (y >= 0 && board[y][x] != null)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
 }
