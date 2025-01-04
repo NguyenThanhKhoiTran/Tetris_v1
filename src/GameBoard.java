@@ -292,6 +292,9 @@ public class GameBoard extends Application {
         gravity.play();
 
         gameScene.setOnKeyPressed(event -> handleKeyPress(event, currentBlock, a, gp));
+        gp.setOnMouseClicked(event -> gp.requestFocus());
+        gp.requestFocus();
+        gp.setFocusTraversable(true);
         return gameScene;
     }
 
