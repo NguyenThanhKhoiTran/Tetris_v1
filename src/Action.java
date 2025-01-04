@@ -13,10 +13,6 @@ public class Action {
         int newX = b.getX() + dx;
         int newY = b.getY() + dy;
 
-        if (newX < 0 || newX >= COL_STACK || newY < 0 || newY >= ROW_STACK) {
-            return false;
-        }
-
         for (int row = 0; row < shape.length; row++) {
             for (int col = 0; col < shape[row].length; col++) {
                 if (shape[row][col] != 0) {
@@ -75,16 +71,12 @@ public class Action {
 
         // Calculate score based on the number of full lines
         int lineCleared = fullLines.size();
-
-        if (lineCleared == 1) {
-            score += 50;
-        } else if (lineCleared == 2) {
-            score += 100;
-        } else if (lineCleared == 3) {
-            score += 150;
-        } else if (lineCleared >= 4) {
-            score += 150 + 200 * (lineCleared - 3);
-        }
+        score += switch (lineCleared) {
+            case 1 -> 50;
+            case 2 -> 100;
+            case 3 -> 150;
+            default -> lineCleared >= 4 ? 150 + 200 * (lineCleared - 3) : 0;
+        };
 
         // Remove full lines and shift rows down
         for (int row : fullLines) {
@@ -162,12 +154,12 @@ public class Action {
                     int newX = x + col;
                     int newY = y + row;
 
-                    // Check if the new position is out of bounds
+                    // Check boundaries
                     if (newX < 0 || newX >= COL_STACK || newY < 0 || newY >= ROW_STACK) {
                         return false;
                     }
 
-                    // Check if the new position collides with an existing block
+                    // Check collisions with other blocks
                     if (!b.containsCell(newX, newY) && board[newY][newX] != null) {
                         return false;
                     }
