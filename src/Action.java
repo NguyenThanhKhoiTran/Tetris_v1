@@ -160,7 +160,7 @@ public class Action {
                     }
 
                     // Check collisions with other blocks
-                    if (!b.containsCell(newX, newY) && board[newY][newX] != null) {
+                    if (board[newY][newX] != null) {
                         return false;
                     }
                 }
