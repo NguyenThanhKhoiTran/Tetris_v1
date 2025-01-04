@@ -401,20 +401,10 @@ public class GameBoard extends Application {
                 }
                 break;
             case KeyCode.Z:
-                int[][] originalShape = currentBlock.getCurrentShape();
-                int[][] rotatedShape = TetrisShape.rotateClockwise(originalShape);
-                Block rotatedBlock = new Block(rotatedShape, currentBlock.getColor());
-                if (a.isRotationValid(rotatedBlock, board) == true) {
-                    currentBlock.setShape(rotatedShape);
-                }
+                a.rotateBlock(currentBlock, board, false);
                 break;
             case KeyCode.X:
-                int[][] originalShape2 = currentBlock.getCurrentShape();
-                int[][] rotatedShape2 = TetrisShape.rotateCounterClockwise(originalShape2);
-                Block rotatedBlock2 = new Block(rotatedShape2, currentBlock.getColor());
-                if (a.isRotationValid(rotatedBlock2, board) == true) {
-                    currentBlock.setShape(rotatedShape2);
-                }
+                a.rotateBlock(currentBlock, board, true);
                 break;
             default:
                 break;

@@ -146,28 +146,56 @@ public class Action {
     /********************************************
      * A function to validate the block rotation
      *******************************************/
-    public boolean isRotationValid(Block rotatedBlock, Block[][] board) {
-        int[][] shape = rotatedBlock.getCurrentShape();
-        int newX = rotatedBlock.getX();
-        int newY = rotatedBlock.getY();
+    public boolean isRotationValid(Block b, Block[][] board, boolean clockwise) {
+        // Get the current shape and attempt to rotate it
+        int[][] shape = b.getCurrentShape();
+        int[][] rotatedShape = clockwise
+                ? TetrisShape.rotateClockwise(shape)
+                : TetrisShape.rotateCounterClockwise(shape);
+        int x = b.getX();
+        int y = b.getY();
 
-        // Check if the rotated block is out of bounds
-        if (newX < 0 || newX + shape[0].length > COL_STACK || newY < 0 || newY + shape.length > ROW_STACK) {
-            return false;
-        }
+        // Check if the rotated block fits within the board boundaries
+        for (int row = 0; row < rotatedShape.length; row++) {
+            for (int col = 0; col < rotatedShape[0].length; col++) {
+                if (rotatedShape[row][col] != 0) {
+                    int newX = x + col;
+                    int newY = y + row;
 
-        // Check for collisions with existing blocks
-        for (int row = 0; row < shape.length; row++) {
-            for (int col = 0; col < shape[row].length; col++) {
-                if (shape[row][col] != 0) {
-                    int x = newX + col;
-                    int y = newY + row;
-                    if (x < 0 || x >= COL_STACK || y < 0 || y >= ROW_STACK || (y >= 0 && board[y][x] != null)) {
+                    // Check if the new position is out of bounds
+                    if (newX < 0 || newX >= COL_STACK || newY < 0 || newY >= ROW_STACK) {
+                        return false;
+                    }
+
+                    // Check if the new position collides with an existing block
+                    if (!b.containsCell(newX, newY) && board[newY][newX] != null) {
                         return false;
                     }
                 }
             }
         }
         return true;
+    }
+
+    /***************************************************************
+     * A function to rotate the block clockwise or counter-clockwise
+     **************************************************************/
+    public void rotateBlock(Block current, Block[][] board, boolean clockwise) {
+        int[][] shape = current.getCurrentShape();
+        int[][] rotatedShape = clockwise
+                ? TetrisShape.rotateClockwise(shape)
+                : TetrisShape.rotateCounterClockwise(shape);
+
+        // Create a temporary rotated block
+        Block temp = new Block(rotatedShape, current.getColor());
+        temp.setX(current.getX());
+        temp.setY(current.getY());
+
+        // Check if the rotation is valid
+        if (isRotationValid(temp, board, clockwise)) {
+            current.setShape(rotatedShape);
+            current.setX(temp.getX());
+            current.setY(temp.getY());
+        }
     }
 }

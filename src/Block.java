@@ -51,4 +51,20 @@ public class Block {
     public void setShape(int[][] shape) {
         this.shape = shape;
     }
+
+    // Check if a cell belongs to this block
+    public boolean containsCell(int x, int y) {
+        for (int row = 0; row < shape.length; row++) {
+            for (int col = 0; col < shape[0].length; col++) {
+                if (shape[row][col] != 0) {
+                    int blockX = x + col;
+                    int blockY = y + row;
+                    if (blockX == x && blockY == y) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 }
