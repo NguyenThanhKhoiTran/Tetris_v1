@@ -53,13 +53,13 @@ public class Block {
     }
 
     // Check if a cell belongs to this block
-    public boolean containsCell(int x, int y) {
+    public boolean containsCell(int cellX, int cellY) {
         for (int row = 0; row < shape.length; row++) {
             for (int col = 0; col < shape[0].length; col++) {
                 if (shape[row][col] != 0) {
                     int blockX = x + col;
                     int blockY = y + row;
-                    if (blockX == x && blockY == y) {
+                    if (blockX == cellX && blockY == cellY) {
                         return true;
                     }
                 }
